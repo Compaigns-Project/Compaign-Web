@@ -27,6 +27,12 @@ import logo from './Dashboadlogo.gif';
 import { SpaceDashboard , QueryStats, PeopleAlt, Work , Mail,Settings, AccountCircleIcon, Help, LibraryBooks, Recommend, LiveHelp} from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 
+import LogoutIcon from '@mui/icons-material/Logout';
+import { useSession, signOut } from 'next-auth/react';
+import { redirect } from 'next/navigation';
+
+
+
 const drawerWidth = 240;
 
 function Layout(props) {
@@ -57,6 +63,25 @@ function Layout(props) {
   const handleCollapse = () => {
     setIsCollapse(!isCollapse);
   };
+
+  const { data: session } = useSession({
+    required: true,
+    onUnauthenticated() {
+      redirect('/')
+      // redirect('/api/auth/signin?callbackUrl=/client')
+    }
+  })
+
+
+  if (session) {
+    let user = session["user"];
+    console.log('Session User ', user);
+  }
+
+  const userLogout = () => {
+    signOut();
+  }
+
 
   const drawer = (
     <div>
@@ -125,25 +150,34 @@ function Layout(props) {
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
-          bgcolor:"#FFFFFF",
-          color:"#2F2F2F"
+          bgcolor: "#FFFFFF",
+          color: "#2f2f2f",
         }}
       >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h5" noWrap component="div">
-            Dashboard
-          </Typography>
-        </Toolbar>
+        <div className="flex justify-between">
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { sm: "none" } }}
+            >
+              <MenuIcon />
+            </IconButton>
+
+            <Typography variant="h6" noWrap component="div">
+              Dashboard
+            </Typography>
+          </Toolbar>
+          <div className="mt-3 mr-3 cursor-pointer" onClick={() => userLogout()}>
+            <Typography variant="h6" noWrap component="div">
+              <LogoutIcon /> Logout
+            </Typography>
+          </div>
+        </div>
       </AppBar>
+
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}

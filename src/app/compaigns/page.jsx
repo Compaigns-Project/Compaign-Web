@@ -1,14 +1,23 @@
 // Analytics.js
-import React from "react";
+"use client";
+import {useState} from "react";
 import Layout from "../components/layout"; // Ensure the import path is correct
-import CompaignsList from './compaignsList'
-import { Typography } from "@mui/material/Typography";
+import UsersList from './comList'
 
-export default function Compaigns() {
+export default function Users() {
+
+    
+
     return (
         <Layout>
-            <h2 className="font-bold mb-4">Compaigns</h2>
-            <CompaignsList/>
+               
+                
+             <UsersList></UsersList>
+
+
+                        
+                
+            
         </Layout>
     );
 }

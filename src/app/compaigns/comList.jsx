@@ -18,10 +18,12 @@ import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 import { ToastContainer, toast, Bounce  } from 'react-toastify';
 import Button from '@mui/material/Button';
 import Layout from "../components/layout"; // Ensure the import path is correct
-import UsersList from './usersList'
+import UsersList from './comList'
 import { Add, ArrowBack } from "@mui/icons-material";
 import { Typography } from "@mui/material/Typography";
-import UserDetails from "./userDetails";
+import UserDetails from "./compDetails";
+import SendToMobileIcon from '@mui/icons-material/SendToMobile';
+import { SnackbarProvider, useSnackbar, enqueueSnackbar } from 'notistack';
 
 
 
@@ -58,9 +60,9 @@ export default function StickyHeadTable() {
       let filterData;
       if(SearchQuery){
         filterData = data.filter(usr => 
-          usr.userName.toLowerCase().includes(SearchQuery.toLowerCase()) ||
-          usr.userEmail.toLowerCase().includes(SearchQuery.toLowerCase()) ||
-          usr.location.toLowerCase().includes(SearchQuery.toLowerCase()) 
+          usr.campaignName.toLowerCase().includes(SearchQuery.toLowerCase()) ||
+          usr.description.toLowerCase().includes(SearchQuery.toLowerCase()) ||
+          usr.campaignId.toString().toLowerCase().includes(SearchQuery.toLowerCase()) 
           
         )
         setData(filterData);
@@ -72,7 +74,7 @@ export default function StickyHeadTable() {
     }
 
     const getData = () => {
-        fetch('http://localhost:8000/api/analytics/users/usertable')
+        fetch('http://localhost:8000/api/campaign/getAllCompaigns')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -84,14 +86,13 @@ export default function StickyHeadTable() {
                 setData(data);
                 setAllData(data);
                 setLoading(false);
+                return data;
             })
             .catch(err => {
                 console.log(err);
             });
     }
-
-  console.log("This is my data ",data);
-
+ 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -105,10 +106,8 @@ export default function StickyHeadTable() {
     setPage(0);
   };
 
-  const editRecord = (row) => {
-    console.log("Edit Record is : ", row)
-    setRows(row);
-    setAddUser(true);
+  const PushNotification = (row) => {
+   
   };
 
   const addRecord = (row) => {
@@ -116,7 +115,7 @@ export default function StickyHeadTable() {
     setRows(null);
     setAddUser(true);
   };
-
+    
 
   const deleteRecord = (row) => {
     console.log("Delete Record is : ", row);
@@ -139,27 +138,40 @@ export default function StickyHeadTable() {
     
   };
   const deleteRow = (row) => {
-    fetch('http://localhost:8000/api/user/delete', {
+    fetch('http://localhost:8000/api/campaign/deleteCompaign', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
       },
-      body: JSON.stringify({userId:row.userId}) 
+      body: JSON.stringify({campaignId:row.campaignId}) 
        }).then(response => {
         console.log("data", response);
         getData()
        }).then(response =>{
-        toast.error('User is Successfully deleted', {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: false,
-          theme: "colored",
-          transition: Bounce,
-          });
+        // toast.success('User is Successfully deleted', {
+        //   position: "top-right",
+        //   autoClose: 5000,
+        //   hideProgressBar: true,
+        //   closeOnClick: true,
+        //   pauseOnHover: true,
+        //   draggable: true,
+        //   progress: undefined,
+        //   theme: "light",
+        //   transition: Bounce,
+        //   });
+
+        enqueueSnackbar('User is Successfully deleted',  {
+          variant: 'success',
+          anchorOrigin: {
+            vertical: 'top', // Customize the vertical position
+            horizontal: 'right', // Customize the horizontal position
+          },
+          style: {
+            backgroundColor: '#00ff00', // Customize the background color
+            color: '#ffffff', // Customize the text color
+            fontWeight: 'bold', // Customize the font weight
+          },
+        })  
        })
        
 
@@ -177,17 +189,20 @@ export default function StickyHeadTable() {
     <>
     
    
-    <ToastContainer />
-    {addUser ? (<UserDetails HandleIsAddClose = {HandleIsAddClose} rows ={rows}/>): (<>
-      <h2 className="font-bold mb-4">Users</h2>
+    {/* <ToastContainer /> */}
+    <SnackbarProvider maxSnack={3}>
+      
+      </SnackbarProvider>
+    {addUser ? (<UserDetails HandleIsAddClose = {HandleIsAddClose} />): (<>
+      <h2 className="font-bold mb-4">Compaigns</h2>
       <div className="flex justify-between ">
       
       <div>
-        <input type="text" placeholder="Search Users"  value={SearchQuery} onChange={handleInputChange} className="mb-2 px-2 py-2 rounded-lg border-2">
+        <input type="text" placeholder="Search Compaigns"  value={SearchQuery} onChange={handleInputChange} className="mb-2 px-2 py-2 rounded-lg border-2">
         </input>
       </div>
       <Button variant="outlined" className="mb-2" onClick={()=>addRecord()} startIcon={<Add />}>
-          Add User
+          Add Compaign
       </Button>
       </div>
     
@@ -195,7 +210,8 @@ export default function StickyHeadTable() {
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
       <TableContainer sx={{ maxHeight: 440 }}>
         <Table stickyHeader aria-label="sticky table">
-          <TableHead>
+          
+        <TableHead>
             <TableRow>
             <TableCell
                   
@@ -216,21 +232,21 @@ export default function StickyHeadTable() {
                   align="center"
                   style={{ minWidth: 170 }}
                 >
-                  EMAIL
+                  Description
             </TableCell>
             <TableCell
                   
                   align="center"
                   style={{ minWidth: 170 }}
                 >
-                  LOCATION
+                  Compaign
             </TableCell>
             <TableCell
                   
                   align="center"
                   style={{ minWidth: 170 }}
                 >
-                  NO OF COMPAIGNS
+                  Views
             </TableCell>
             <TableCell
                   
@@ -244,33 +260,43 @@ export default function StickyHeadTable() {
                   align="center"
                   style={{ minWidth: 170 }}
                 >
-                  Action Center
+                  Push Compaign
+            </TableCell>
+            <TableCell
+                  
+                  align="center"
+                  style={{ minWidth: 170 }}
+                >
+                  Delete Compaign
             </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {data
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            {
+            
+            
+            data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, index) => {
                 return (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
                     
                      
                     <TableCell key={index} align="center">
-                        {row.userId}
+                        {row.campaignId}
                     </TableCell>
                     <TableCell key={index} align="center">
-                        {row.userName}
+                        {row.campaignName}
+                    </TableCell>
+                   
+                    <TableCell key={index} align="center">
+                        {row.description}
                     </TableCell>
                     <TableCell key={index} align="center">
-                        {row.userEmail}
-                    </TableCell>
-                    <TableCell key={index} align="center">
-                        {row.location}
+                        {row.video}
                     </TableCell>
                     
                     <TableCell key={index} align="center">
-                        {row.campaignCount}
+                        {row.views}
                     </TableCell>
                     <TableCell key={index} align="center">
                         {/* {row.createdAt} */}
@@ -278,21 +304,36 @@ export default function StickyHeadTable() {
                     </TableCell>
                     <TableCell key={index} align="center">
                         <div className="flex justify-center gap-2">
-                            <div className="cursor-pointer text-green-500"  onClick={()=>{editRecord(row)}} >
-                                <EditIcon></EditIcon>
+                            <div className="cursor-pointer text-green-500 "  onClick={()=>{PushNotification(row)}} >
+                                {/* <EditIcon fontSize="large"></EditIcon> */}
+                                <SendToMobileIcon/>
                             </div>
+                            {/* <div className="cursor-pointer text-red-500" onClick={()=>{deleteRecord(row)}}>
+                                <DeleteIcon></DeleteIcon>
+                            </div> */}
+
+                            
+                        </div>
+                    </TableCell>
+                    <TableCell key={index} align="center">
+                        <div className="flex justify-center gap-2">
+                            {/* <div className="cursor-pointer text-green-500"  onClick={()=>{editRecord(row)}} >
+                                <EditIcon></EditIcon>
+                            </div> */}
                             <div className="cursor-pointer text-red-500" onClick={()=>{deleteRecord(row)}}>
                                 <DeleteIcon></DeleteIcon>
                             </div>
 
                             
                         </div>
-                    </TableCell>     
+                    </TableCell>          
                     
                   </TableRow>
                 );
               })}
           </TableBody>
+
+
         </Table>
       </TableContainer>
       <TablePagination
